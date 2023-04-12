@@ -3,6 +3,7 @@ import { json } from "@remix-run/node"
 import { useLoaderData } from "@remix-run/react";
 import { ExtendedProductSchema } from "~/utils/types/product";
 import { ProductCategory, ProductDescription, ProductImage, ProductPrice, ProductTitle } from "../product-card";
+import { AddToCartButtons } from "../cart";
 
 export const loader = async ({ params }: LoaderArgs) => {
     const { productId } = params;
@@ -39,10 +40,11 @@ export default function ProductRoute() {
                     <span className="text-lg">
                         <ProductTitle title={product.title} />
                     </span>
-                    <span className="text-md font-semibold mb-4">
+                    <span className="text-md font-semibold mb-2">
                         <ProductPrice price={product.price} />
                     </span>
-                    <span className="flex-1 mb-2">
+                    <AddToCartButtons />
+                    <span className="flex-1 mt-2 mb-2">
                         <ProductDescription description={product.description} />
                     </span>
 
