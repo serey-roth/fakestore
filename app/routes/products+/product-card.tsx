@@ -87,7 +87,7 @@ export function ProductCard({
     children
 }: ProductCardProps) {
     return (
-        <div className="flex flex-col w-40 rounded-sm
+        <div className="flex flex-col w-full sm:w-60 rounded-sm
         drop-shadow-sm bg-white p-2">
             {children}
         </div>
