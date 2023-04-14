@@ -1,76 +1,73 @@
-import { z } from "zod";
-import { ExtendedProductSchema } from "~/utils/types/product";
+import { db } from "~/utils/types/db.server";
 
 export const getCategories = async () => {
-    const result = await fetch(
-        'https://fakestoreapi.com/products/categories'
-    )
-    .then(response => response.json())
-    .then(data => z.array(z.string()).safeParse(data));
-
-    return result.success ? result.data : [];
+    const results = await db.product.findMany({
+        select: {
+            category: true,
+        }
+    });
+    return Array.from(new Set(results.map(result => result.category)));
 }
 
 export const getProducts = async () => {
-    const result = await fetch(
-        `https://fakestoreapi.com/products`
-    )
-    .then(response => response.json())
-    .then(data => z.array(ExtendedProductSchema).safeParse(data));
-
-    return result.success ? result.data : [];
+    return db.product.findMany();
 }
 
 type PaginationOptions = {
-    limit: number
+    page: number,
+    limit?: number
 }
 
-const getPaginatedResources = async <TValues extends { length : number }>({
-    url,
-    schema,
-    limit,
-}: {
-    url: string,
-    schema: z.Schema<TValues>
-} & PaginationOptions) => {
-    const data = await fetch(url).then(response => response.json());
-    const result = schema.safeParse(data);
+// const getPaginatedResources = async <TValues extends { length : number }>({
+//     url,
+//     schema,
+//     limit,
+// }: {
+//     url: string,
+//     schema: z.Schema<TValues>
+// } & PaginationOptions) => {
+//     const data = await fetch(url).then(response => response.json());
+//     const result = schema.safeParse(data);
 
+//     return {
+//         hasMore: result.success ? result.data.length === limit : undefined,
+//         products: result.success ? result.data : []
+//     }
+// }
+
+export const getPaginatedProducts = async ({
+    page,
+    limit = 10
+}: PaginationOptions) => {
+    const products = await db.product.findMany({
+        take: limit + 1,
+        skip: (page - 1) * limit
+    });
     return {
-        hasMore: result.success ? result.data.length === limit : undefined,
-        products: result.success ? result.data : []
+        hasMore: products.length === limit + 1,
+        products: products.slice(0, limit - 1)
     }
 }
 
-export const getPaginatedProducts = async ({
-    limit
-}: PaginationOptions) => {
-    return getPaginatedResources({
-        url: `https://fakestoreapi.com/products?limit=${limit}`,
-        schema: z.array(ExtendedProductSchema),
-        limit
+// export const getPaginatedProductsByCategory = async ({
+//     category,
+//     limit
+// }: { 
+//     category: string
+// } & PaginationOptions) => {
+//     return getPaginatedResources({
+//         url: `https://fakestoreapi.com/products/category/${category}?limit=${limit}`,
+//         schema: z.array(ExtendedProductSchema),
+//         limit
+//     });
+// }
+
+export const getProduct = async ({
+    id
+}: {
+    id: number
+}) => {
+    return db.product.findUnique({
+        where: { id }
     });
-}
-
-export const getPaginatedProductsByCategory = async ({
-    category,
-    limit
-}: { 
-    category: string
-} & PaginationOptions) => {
-    return getPaginatedResources({
-        url: `https://fakestoreapi.com/products/category/${category}?limit=${limit}`,
-        schema: z.array(ExtendedProductSchema),
-        limit
-    });
-}
-
-export const getProduct = async (id: number) => {
-    const result = await fetch(
-        `https://fakestoreapi.com/products/${id}`
-    )
-    .then(response => response.json())
-    .then(data => ExtendedProductSchema.safeParse(data));
-
-    return result.success ? result.data : null;
 }
