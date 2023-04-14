@@ -50,7 +50,7 @@ const handleInvalidFormFieldValues = <T>({
     });
 }
 
-const handleNoExisitingUser = (
+const handleNoExistingUser = (
     message = "Invalid credentials! Please try again."
 ) => {
     return handleBadRequest({
@@ -94,7 +94,7 @@ export const login = async ({
     });
 
     if (!user) {
-        return handleNoExisitingUser();
+        return handleNoExistingUser();
     }
 
     const isCorrectPassword = await validateUserPassword(
