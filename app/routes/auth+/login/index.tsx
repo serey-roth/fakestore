@@ -1,6 +1,7 @@
 import type { ActionArgs} from "@remix-run/node";
 import { json, redirect } from "@remix-run/node"
 import { login } from "../auth.server";
+import { Link } from "@remix-run/react";
 
 export const action = async ({ request }: ActionArgs ) => {
     const form = await request.formData();
@@ -42,7 +43,7 @@ export default function LoginRoute() {
                         outline-none focus:ring-2 focus:ring-blue-200
                         drop-shadow-sm"/>
                     </div>
-                    <div className="mb-2 flex flex-col gap-1">
+                    <div className="mb-4 flex flex-col gap-1">
                         <label htmlFor="Password">Password</label>
                         <input
                         type="password" 
@@ -59,6 +60,15 @@ export default function LoginRoute() {
                         Log in
                     </button>
                 </form>
+                <div className="flex items-center mt-2">
+                    <p>Don't have an account yet?</p>
+                    <Link to="/auth/register">
+                        <p className="ml-2 underline hover:text-white
+                        transition duration-300 ease-in-out">
+                            Register
+                        </p>
+                    </Link>
+                </div>
             </div>
         </div>
     )
