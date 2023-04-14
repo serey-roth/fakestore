@@ -1,9 +1,9 @@
-import type { LoaderArgs} from "@remix-run/node";
-import { json } from "@remix-run/node"
+import type { LoaderArgs } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import { ExtendedProductSchema } from "~/utils/types/product";
-import { ProductCategory, ProductDescription, ProductImage, ProductPrice, ProductTitle } from "../product-card";
 import { AddToCartButtons } from "../cart";
+import { ProductCategory, ProductDescription, ProductImage, ProductPrice, ProductTitle } from "../product-card";
+import { getProduct } from "../products.server";
 
 export const loader = async ({ params }: LoaderArgs) => {
     const { productId } = params;
@@ -12,17 +12,16 @@ export const loader = async ({ params }: LoaderArgs) => {
         throw new Error("Product ID is mandatory!")
     }
 
-    const result = await fetch(
-        `https://fakestoreapi.com/products/${productId}`
-    ).then(response => response.json())
-    .then(data => ExtendedProductSchema.safeParse(data));
+    const product = await getProduct({
+        id: Number.parseInt(productId)
+    });
 
-    if (!result.success) {
+    if (!product) {
         throw new Error("No product with this ID!");
     }
 
     return json({
-        product: result.data
+        product
     });
 }
 
@@ -34,7 +33,7 @@ export default function ProductRoute() {
             <div className="flex sm:flex-row flex-col sm:items-start gap-2
             relative">
                 <div className="w-full sm:w-40">
-                    <ProductImage image={product.image} />
+                    <ProductImage image={product.imageURL || ""} />
                 </div>
                 <div className="flex flex-col self-stretch">
                     <span className="text-lg">
