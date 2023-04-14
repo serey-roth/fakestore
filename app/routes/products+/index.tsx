@@ -1,12 +1,13 @@
-import type { ActionArgs, LoaderArgs } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
-import { Link, useLoaderData } from "@remix-run/react";
+import type { ActionArgs, LoaderArgs} from "@remix-run/node";
+import { defer, redirect } from "@remix-run/node";
+import { Await, Link, useLoaderData } from "@remix-run/react";
+import { Suspense } from "react";
+import CategoriesSelect from "./category-select";
 import Pagination from "./pagination";
 import ProductCard from "./product-card";
-import { getCategories, getPaginatedProducts, getPaginatedProductsByCategory } from "./products.server";
-import CategoriesSelect from "./category-select";
+import { getCategories, getPaginatedProducts } from "./products.server";
 
-const LIMIT = 10;
+//const LIMIT = 10;
 
 export const action = async ({ request }: ActionArgs) => {
     const searchParams = new URL(request.url).searchParams;
@@ -39,26 +40,18 @@ export const loader = async ({ request }: LoaderArgs) => {
     const pageParam = searchParams.get("page") || "1";
 
     const currentPage = Number.parseInt(pageParam);
-    const paginatedLimit = currentPage * LIMIT + 1;
 
     const categories = await getCategories();
 
-    let { hasMore, products } = await (
-    categoryParam ? getPaginatedProductsByCategory({
-        category: categoryParam,
-        limit: paginatedLimit
-    }) : getPaginatedProducts({
-        limit: paginatedLimit
-    }));
-
-    products = products.slice((currentPage - 1) * LIMIT, paginatedLimit - 1);
+    let productsData = getPaginatedProducts({
+        page: currentPage
+    });
     
-    return json({
+    return defer({
         currentCategory : categoryParam,
         categories,
         currentPage,
-        products,
-        hasMore
+        productsData
     }, {
         headers: {
             "Cache-Control": "max-age=10, stale-while-revalidate=60"
@@ -74,28 +67,37 @@ export default function ProductsRoute() {
             <CategoriesSelect 
             categories={data.categories} 
             value={data.currentCategory} />
-            <Pagination 
-            currentPage={data.currentPage} 
-            hasMore={!!data.hasMore} />
-            <div className="flex flex-wrap justify-center gap-2">
-                {data.products.map((product) => (
-                    <ProductCard key={product.id}>
-                        <ProductCard.Image image={product.image} />
-                        <Link to={`/products/${product.id}`}>
-                            <ProductCard.Title 
-                            title={product.title}
-                            isTruncated={true}/>
-                        </Link>
-                        <span className="text-sm flex-1">
-                            <ProductCard.Description description={product.description} />
-                        </span>
-                        <ProductCard.Price price={product.price} />
-                        <span className="text-sm">
-                            <ProductCard.Category category={product.category} />
-                        </span>
-                    </ProductCard>
-                ))}
-            </div>
+            <Suspense fallback={<div>Loading products...</div>}>
+                <Await
+                resolve={data.productsData}>
+                {({ hasMore, products}) => (
+                    <>
+                        <Pagination 
+                        currentPage={data.currentPage} 
+                        hasMore={!!hasMore} />
+                        <div className="flex flex-wrap justify-center gap-2">
+                            {products.map((product) => (
+                                <ProductCard key={product.id}>
+                                    <ProductCard.Image image={product.imageURL || ""} />
+                                    <Link to={`/products/${product.id}`}>
+                                        <ProductCard.Title 
+                                        title={product.title}
+                                        isTruncated={true}/>
+                                    </Link>
+                                    <span className="text-sm flex-1">
+                                        <ProductCard.Description description={product.description} />
+                                    </span>
+                                    <ProductCard.Price price={product.price} />
+                                    <span className="text-sm">
+                                        <ProductCard.Category category={product.category} />
+                                    </span>
+                                </ProductCard>
+                            ))}
+                        </div>
+                    </>
+                )}
+                </Await>
+            </Suspense>
         </div>
     )
 }
