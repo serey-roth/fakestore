@@ -1,5 +1,5 @@
 import { Outlet } from "@remix-run/react";
-import Navbar from "./nav-bar";
+import Navbar from "../nav-bar";
 import { Cart } from "./cart";
 
 export default function ProductsLayout() {
