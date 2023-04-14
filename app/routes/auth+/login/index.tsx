@@ -26,37 +26,40 @@ export const action = async ({ request }: ActionArgs ) => {
 export default function LoginRoute() {
     return (
         <div className="flex justify-center w-full">
-            <form 
-            method="post"
-            action="/auth/login?index"
-            className="w-full sm:max-w-[500px]">
-                <div className="mb-2 flex flex-col gap-1">
-                    <label htmlFor="username">Username</label>
-                    <input
-                    type="text" 
-                    name="username"
-                    id="username" 
-                    className="rounded-sm p-1 appearance-none
-                    outline-none focus:ring-2 focus:ring-blue-200
-                    drop-shadow-sm"/>
-                </div>
-                <div className="mb-2 flex flex-col gap-1">
-                    <label htmlFor="Password">Password</label>
-                    <input
-                    type="password" 
-                    name="password"
-                    id="password" 
-                    className="rounded-sm p-1 appearance-none
-                    outline-none focus:ring-2 focus:ring-blue-200
-                    drop-shadow-sm"/>
-                </div>
-                <button 
-                type="submit"
-                className="w-full bg-blue-200 p-1 rounded-sm
-                drop-shadow-sm">
-                    Log in
-                </button>
-            </form>
+            <div className="w-full sm:max-w-[500px]">
+                <h1 className="font-bold text-xl mb-2
+                underline underline-offset-2">Log in to your account</h1>
+                <form 
+                method="post"
+                action="/auth/login?index">
+                    <div className="mb-2 flex flex-col gap-1">
+                        <label htmlFor="username">Username</label>
+                        <input
+                        type="text" 
+                        name="username"
+                        id="username" 
+                        className="rounded-sm p-1 appearance-none
+                        outline-none focus:ring-2 focus:ring-blue-200
+                        drop-shadow-sm"/>
+                    </div>
+                    <div className="mb-2 flex flex-col gap-1">
+                        <label htmlFor="Password">Password</label>
+                        <input
+                        type="password" 
+                        name="password"
+                        id="password" 
+                        className="rounded-sm p-1 appearance-none
+                        outline-none focus:ring-2 focus:ring-blue-200
+                        drop-shadow-sm"/>
+                    </div>
+                    <button 
+                    type="submit"
+                    className="w-full bg-blue-300 p-1 rounded-sm
+                    drop-shadow-sm">
+                        Log in
+                    </button>
+                </form>
+            </div>
         </div>
     )
 }
