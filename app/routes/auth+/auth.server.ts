@@ -6,12 +6,12 @@ import { db } from "~/utils/types/db.server";
 const MIN_USERNAME_LENGTH = 3;
 const MIN_PASSWORD_LENGTH = 6;
 
-const LoginSchema = z.object({
+const UsernamePasswordSchema = z.object({
     username: z.string().min(MIN_USERNAME_LENGTH, "Username must be at least 3 characters long!"),
     password: z.string().min(MIN_PASSWORD_LENGTH, "Password must be at least 6 characters long!"),
 });
 
-type LoginArgs = z.infer<typeof LoginSchema>;
+type UsernamePassword = z.infer<typeof UsernamePasswordSchema>;
 
 type FieldErrors<TFields> = {
     [T in keyof TFields]?: string[];
@@ -76,11 +76,11 @@ const handleIncorrectPassword = <TFields>(
 export const login = async ({
     username,
     password
-}: LoginArgs): Promise<{
+}: UsernamePassword): Promise<{
     data: Pick<User, "id" | "username"> | null,
-    errors: FormErrors<LoginArgs> | null, 
+    errors: FormErrors<UsernamePassword> | null, 
 }> => {
-    const validationResult = LoginSchema.safeParse({
+    const validationResult = UsernamePasswordSchema.safeParse({
         username,
         password
     });
