@@ -13,59 +13,62 @@ const LoginSchema = z.object({
 
 type LoginArgs = z.infer<typeof LoginSchema>;
 
-type FormErrors<T> = {
-    fields: T | null,
-    fieldErrors: string[] | null,
-    formError: string | null,
+type FieldErrors<TFields> = {
+    [T in keyof TFields]?: string[];
+}
+
+type FormErrors<TFields> = {
+    fields?: TFields,
+    fieldErrors?: FieldErrors<TFields>;
+    formError?: string,
 }
 
 const validateUserPassword = async (password: string, hashedPassword: string) => {
     return bcrypt.compare(password, hashedPassword);
 }
 
-const handleBadRequest = <T>(errors: T) => {
+const handleBadRequest = <TErrors>(errors: TErrors) => {
     return {
         data: null,
         errors,
     };
 }
 
-const handleOKRequest = <T>(data: T) => {
+const handleOKRequest = <TData>(data: TData) => {
     return {
         data,
         errors: null
     };
 }
 
-const handleInvalidFormFieldValues = <T>({ 
+const handleInvalidFormFieldValues = <TFields>({ 
     fields, fieldErrors 
 }: {
-    fields: T,
-    fieldErrors: string[]
+    fields: TFields,
+    fieldErrors: FieldErrors<TFields>
 }) => {
     return handleBadRequest({
         fields,
         fieldErrors,
-        formError: null,
     });
 }
 
-const handleNoExistingUser = (
+const handleNoExistingUser = <TFields>(
+    fields: TFields,
     message = "Invalid credentials! Please try again."
 ) => {
     return handleBadRequest({
-        fields: null,
-        fieldErrors: null,
+        fields,
         formError: message,
     });
 }
 
-const handleIncorrectPassword = (
+const handleIncorrectPassword = <TFields>(
+    fields: TFields,
     message = "Incorrect password! Please try again."
 ) => {
     return handleBadRequest({
-        fields: null,
-        fieldErrors: null,
+        fields,
         formError: message,
     });
 }
@@ -83,9 +86,10 @@ export const login = async ({
     });
 
     if (!validationResult.success) {
+        const fieldErrors = validationResult.error.flatten().fieldErrors;
         return handleInvalidFormFieldValues({
             fields: { username, password },
-            fieldErrors: validationResult.error.errors.map(error => error.message),
+            fieldErrors,
         });
     }
     
@@ -94,7 +98,7 @@ export const login = async ({
     });
 
     if (!user) {
-        return handleNoExistingUser();
+        return handleNoExistingUser({ username, password });
     }
 
     const isCorrectPassword = await validateUserPassword(
@@ -102,7 +106,7 @@ export const login = async ({
     );
 
     if (!isCorrectPassword) {
-        return handleIncorrectPassword();
+        return handleIncorrectPassword({ username, password });
     }
 
     return handleOKRequest({
