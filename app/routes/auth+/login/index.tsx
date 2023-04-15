@@ -1,7 +1,7 @@
-import type { ActionArgs} from "@remix-run/node";
+import type { ActionArgs, LoaderArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node"
 import { login } from "../auth.server";
-import { Link, useActionData } from "@remix-run/react";
+import { Link, useActionData, useLoaderData } from "@remix-run/react";
 import { ValidatedLabelledFormInput } from "../validated-labelled-form-input";
 
 export const action = async ({ request }: ActionArgs ) => {
@@ -25,7 +25,17 @@ export const action = async ({ request }: ActionArgs ) => {
     return redirect("/");
 }
 
+export const loader = async ({ request }: LoaderArgs) => {
+    const searchParams = new URL(request.url).searchParams;
+    const username = searchParams.get("username");
+    
+    return json({
+        username
+    });
+}
+
 export default function LoginRoute() {
+    const loaderData = useLoaderData<typeof loader>();
     const actionData = useActionData<typeof action>();
 
     return (
@@ -40,7 +50,7 @@ export default function LoginRoute() {
                     name="username"
                     type="text"
                     label="Username"
-                    defaultValue={actionData?.fields?.username}
+                    defaultValue={loaderData.username || actionData?.fields?.username}
                     error={actionData?.fieldErrors?.username} />
 
                     <ValidatedLabelledFormInput 
