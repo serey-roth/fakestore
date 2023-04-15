@@ -1,7 +1,8 @@
 import type { ActionArgs} from "@remix-run/node";
 import { json, redirect } from "@remix-run/node"
 import { login } from "../auth.server";
-import { Link } from "@remix-run/react";
+import { Link, useActionData } from "@remix-run/react";
+import { ValidatedLabelledFormInput } from "../validated-labelled-form-input";
 
 export const action = async ({ request }: ActionArgs ) => {
     const form = await request.formData();
@@ -25,6 +26,8 @@ export const action = async ({ request }: ActionArgs ) => {
 }
 
 export default function LoginRoute() {
+    const actionData = useActionData<typeof action>();
+
     return (
         <div className="flex justify-center w-full">
             <div className="w-full sm:max-w-[500px]">
@@ -33,37 +36,40 @@ export default function LoginRoute() {
                 <form 
                 method="post"
                 action="/auth/login?index">
-                    <div className="mb-2 flex flex-col gap-1">
-                        <label htmlFor="username">Username</label>
-                        <input
-                        type="text" 
-                        name="username"
-                        id="username" 
-                        className="rounded-sm p-1 appearance-none
-                        outline-none focus:ring-2 focus:ring-blue-200
-                        drop-shadow-sm"/>
-                    </div>
-                    <div className="mb-4 flex flex-col gap-1">
-                        <label htmlFor="Password">Password</label>
-                        <input
-                        type="password" 
-                        name="password"
-                        id="password" 
-                        className="rounded-sm p-1 appearance-none
-                        outline-none focus:ring-2 focus:ring-blue-200
-                        drop-shadow-sm"/>
-                    </div>
+                    <ValidatedLabelledFormInput 
+                    name="username"
+                    type="text"
+                    label="Username"
+                    defaultValue={actionData?.fields?.username}
+                    error={actionData?.fieldErrors?.username} />
+
+                    <ValidatedLabelledFormInput 
+                    name="password"
+                    type="password"
+                    label="Password"
+                    defaultValue={actionData?.fields?.password}
+                    error={actionData?.fieldErrors?.password} />
+
+                    {actionData?.formError ? (
+                        <p 
+                        role="alert"
+                        id="form-error"
+                        className="text-sm font-semibold text-red-500 my-2">
+                            {actionData.formError}
+                        </p>
+                    ) : null}
+
                     <button 
                     type="submit"
                     className="w-full bg-blue-300 p-1 rounded-sm
-                    drop-shadow-sm">
+                    drop-shadow-sm mt-2">
                         Log in
                     </button>
                 </form>
                 <div className="flex items-center mt-2">
                     <p>Don't have an account yet?</p>
                     <Link to="/auth/register">
-                        <p className="ml-2 underline hover:text-white
+                        <p className="ml-2 underline hover:text-blue-500
                         transition duration-300 ease-in-out">
                             Register
                         </p>
