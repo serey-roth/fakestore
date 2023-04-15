@@ -31,7 +31,7 @@ export const action = async ({ request }: ActionArgs ) => {
         return json(result.errors);
     }
 
-    return redirect("/");
+    return redirect(`/auth/login?index&username=${result.data?.username}`);
 }
 
 export default function LoginRoute() {
@@ -55,7 +55,7 @@ export default function LoginRoute() {
                     <ValidatedLabelledFormInput 
                     name="email"
                     type="text"
-                    label="email"
+                    label="Email"
                     defaultValue={actionData?.fields?.email}
                     error={actionData?.fieldErrors?.email} />
 
