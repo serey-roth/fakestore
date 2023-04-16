@@ -1,11 +1,15 @@
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
 
+type SessionData = {
+    userId: string;
+}
+
 const sessionSecret = process.env.SESSION_SECRET;
 if (!sessionSecret) {
     throw new Error("Session secret is required for cookie!")
 }
 
-export const storage = createCookieSessionStorage({
+export const storage = createCookieSessionStorage<SessionData>({
     cookie: {
         name: "fake-products",
         maxAge: 60 * 60 * 24 * 365,
@@ -35,4 +39,9 @@ export const createUserSession = async (
 
 export const getUserSession = async (request: Request) => {
     return storage.getSession(request.headers.get("Cookie"));
+}
+
+export const getUserSessionId = async (request: Request) => {
+    const session = await getUserSession(request);
+    return session.get("userId");
 }
