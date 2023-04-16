@@ -1,4 +1,4 @@
-import { createCookieSessionStorage } from "@remix-run/node";
+import { createCookieSessionStorage, redirect } from "@remix-run/node";
 
 const sessionSecret = process.env.SESSION_SECRET;
 if (!sessionSecret) {
@@ -17,3 +17,22 @@ export const storage = createCookieSessionStorage({
     }
 });
 
+export const createUserSession = async (
+    userId: string,
+    redirectToURL: string
+) => {
+    //create a new session so we don't pass the cookie header
+    const session = await storage.getSession();
+    
+    session.set("userId", userId);
+
+    return redirect(redirectToURL, {
+        headers: {
+            "Set-Cookie": await storage.commitSession(session),
+        }
+    });
+}
+
+export const getUserSession = async (request: Request) => {
+    return storage.getSession(request.headers.get("Cookie"));
+}
