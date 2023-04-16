@@ -1,17 +1,20 @@
 import type { ActionArgs, LoaderArgs } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node"
+import { json } from "@remix-run/node"
 import { login } from "../auth.server";
 import { Link, useActionData, useLoaderData } from "@remix-run/react";
 import { ValidatedLabelledFormInput } from "../validated-labelled-form-input";
+import { createUserSession } from "../session.server";
 
 export const action = async ({ request }: ActionArgs ) => {
     const form = await request.formData();
     const username = form.get("username");
     const password = form.get("password");
+    const redirectToUrl = form.get("redirectToUrl") || "/?index";
 
     if (
         typeof username !== "string" ||
-        typeof password !== "string" 
+        typeof password !== "string" ||
+        typeof redirectToUrl != "string"
     ) {
         throw new Error("Form not submitted correctly!");
     }
@@ -22,7 +25,11 @@ export const action = async ({ request }: ActionArgs ) => {
         return json(result.errors);
     }
 
-    return redirect("/");
+    if (!result.data) {
+        throw new Error("Something went wrong when logging user in.");
+    }
+
+    return createUserSession(result.data.id, redirectToUrl);
 }
 
 export const loader = async ({ request }: LoaderArgs) => {
