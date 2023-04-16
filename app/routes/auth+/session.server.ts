@@ -45,3 +45,19 @@ export const getUserSessionId = async (request: Request) => {
     const session = await getUserSession(request);
     return session.get("userId");
 }
+
+export const requireUserSessionId = async (
+    request: Request,
+    currentPath = new URL(request.url).pathname
+) => {
+    const userId = await getUserSessionId(request);
+    
+    if (!userId) {
+        const searchParams = new URLSearchParams([
+            ["redirectTo", currentPath]
+        ])
+        throw redirect(`/auth/login?index&${searchParams}`);
+    }
+
+    return userId;
+}
