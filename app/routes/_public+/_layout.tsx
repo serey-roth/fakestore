@@ -26,10 +26,10 @@ export default function IndexLayout() {
         px-2">
             <div className="flex items-center w-full py-2">
                 <h1 className="font-bold text-lg mr-auto">Fake Products</h1>
-                <span className="rounded-full w-8 h-8 bg-white flex
+                {loaderData.user ? (<span className="rounded-full w-8 h-8 bg-white flex
                 items-center justify-center drop-shadow-md">
-                    {loaderData.user?.username.charAt(0)}
-                </span>
+                    {loaderData.user.username.charAt(0)}
+                </span>) : null}
             </div>
             <Outlet />
         </div>
