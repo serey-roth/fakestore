@@ -23,14 +23,14 @@ export const storage = createCookieSessionStorage<SessionData>({
 
 export const createUserSession = async (
     userId: string,
-    redirectToURL: string
+    redirectTo: string
 ) => {
     //create a new session so we don't pass the cookie header
     const session = await storage.getSession();
     
     session.set("userId", userId);
 
-    return redirect(redirectToURL, {
+    return redirect(redirectTo, {
         headers: {
             "Set-Cookie": await storage.commitSession(session),
         }
