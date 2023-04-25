@@ -1,8 +1,9 @@
-import type { ActionArgs} from "@remix-run/node";
-import { json, redirect } from "@remix-run/node"
+import type { ActionArgs } from "@remix-run/node";
+import { json, redirect } from "@remix-run/node";
+import { Link, useActionData, useSearchParams } from "@remix-run/react";
 import { register } from "../auth.server";
-import { Link, useActionData } from "@remix-run/react";
 import { ValidatedLabelledFormInput } from "../validated-labelled-form-input";
+import { createLinkWithRedirectTo } from "../createLinkWithRedirectTo";
 
 export const action = async ({ request }: ActionArgs ) => {
     const form = await request.formData();
@@ -10,12 +11,14 @@ export const action = async ({ request }: ActionArgs ) => {
     const email = form.get("email");
     const password = form.get("password");
     const confirmPassword = form.get("confirmPassword");
+    const redirectTo = form.get("redirectTo") || "";
 
     if (
         typeof username !== "string" ||
         typeof password !== "string" ||
         typeof email !== "string" ||
-        typeof confirmPassword !== "string" 
+        typeof confirmPassword !== "string" || 
+        typeof redirectTo !== "string"
     ) {
         throw new Error("Form not submitted correctly!");
     }
@@ -31,11 +34,15 @@ export const action = async ({ request }: ActionArgs ) => {
         return json(result.errors);
     }
 
-    return redirect(`/auth/login?index&username=${result.data?.username}`);
+    return redirect(createLinkWithRedirectTo(`/auth/login?index&username=${result.data?.username}`, redirectTo));
 }
 
 export default function LoginRoute() {
     const actionData = useActionData<typeof action>();
+
+    const [searchParams] = useSearchParams();
+    const redirectTo = searchParams.get("redirectTo");
+    const linkToLogin = createLinkWithRedirectTo("/auth/login?index", redirectTo);
 
     return (
         <div className="flex justify-center w-full">
@@ -45,6 +52,11 @@ export default function LoginRoute() {
                 <form 
                 method="post"
                 action="/auth/register?index">
+                    <input
+                    type="hidden"
+                    value={redirectTo || undefined}
+                    name="redirectTo" />
+
                     <ValidatedLabelledFormInput 
                     name="username"
                     type="text"
@@ -91,7 +103,7 @@ export default function LoginRoute() {
                 </form>
                 <div className="flex items-center mt-2">
                     <p>Already have an account?</p>
-                    <Link to="/auth/login">
+                    <Link to={linkToLogin}>
                         <p className="ml-2 underline hover:text-blue-500
                         transition duration-300 ease-in-out">
                             Log in

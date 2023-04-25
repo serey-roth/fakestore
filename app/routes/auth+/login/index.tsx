@@ -1,20 +1,21 @@
 import type { ActionArgs, LoaderArgs } from "@remix-run/node";
 import { json } from "@remix-run/node"
 import { login } from "../auth.server";
-import { Link, useActionData, useLoaderData } from "@remix-run/react";
+import { Link, useActionData, useLoaderData, useSearchParams } from "@remix-run/react";
 import { ValidatedLabelledFormInput } from "../validated-labelled-form-input";
 import { createUserSession } from "../session.server";
+import { createLinkWithRedirectTo } from "../createLinkWithRedirectTo";
 
 export const action = async ({ request }: ActionArgs ) => {
     const form = await request.formData();
     const username = form.get("username");
     const password = form.get("password");
-    const redirectToUrl = form.get("redirectToUrl") || "/?index";
+    const redirectTo = form.get("redirectTo") || "/?index";
 
     if (
         typeof username !== "string" ||
         typeof password !== "string" ||
-        typeof redirectToUrl != "string"
+        typeof redirectTo != "string"
     ) {
         throw new Error("Form not submitted correctly!");
     }
@@ -29,7 +30,7 @@ export const action = async ({ request }: ActionArgs ) => {
         throw new Error("Something went wrong when logging user in.");
     }
 
-    return createUserSession(result.data.id, redirectToUrl);
+    return createUserSession(result.data.id, redirectTo);
 }
 
 export const loader = async ({ request }: LoaderArgs) => {
@@ -44,6 +45,10 @@ export const loader = async ({ request }: LoaderArgs) => {
 export default function LoginRoute() {
     const loaderData = useLoaderData<typeof loader>();
     const actionData = useActionData<typeof action>();
+
+    const [searchParams] = useSearchParams();
+    const redirectTo = searchParams.get("redirectTo");
+    const linkToRegister = createLinkWithRedirectTo("/auth/register?index", redirectTo);
 
     return (
         <div className="flex justify-center w-full">
@@ -85,7 +90,7 @@ export default function LoginRoute() {
                 </form>
                 <div className="flex items-center mt-2">
                     <p>Don't have an account yet?</p>
-                    <Link to="/auth/register">
+                    <Link to={linkToRegister}>
                         <p className="ml-2 underline hover:text-blue-500
                         transition duration-300 ease-in-out">
                             Register
